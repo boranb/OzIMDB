@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.Data.SqlTypes;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -15,7 +16,7 @@ namespace OzIMDB
     {
         private string dbName = "OzImdb";
         SqlConnection con = new SqlConnection("server=.;uid=sa; pwd=123;");
-        private List<Film> filmler;
+        private BindingList<Film> filmler;
         private bool guncellemeAktif = false;
 
         public Form1()
@@ -32,7 +33,7 @@ namespace OzIMDB
             var cmd = new SqlCommand("Select * from Filmler", con);
             var dr = cmd.ExecuteReader();
 
-            filmler = new List<Film>();
+            filmler = new BindingList<Film>();
 
             while (dr.Read())
             {
@@ -47,6 +48,7 @@ namespace OzIMDB
             dr.Close();
             lstFilmler.DataSource = filmler;
             //pboFoto.Image = filmler[0].Foto;
+
             guncellemeAktif = true;
         }
 
@@ -60,7 +62,7 @@ namespace OzIMDB
                 cmd.ExecuteNonQuery();
 
                 cmd = new SqlCommand($"USE {dbName};"
-                                     +@"CREATE TABLE Filmler
+                                     + @"CREATE TABLE Filmler
 (
                                       Id INT PRIMARY KEY IDENTITY, 
                                       FilmAd NVARCHAR(200) NOT NULL,
@@ -84,7 +86,7 @@ namespace OzIMDB
                 return null;
             }
 
-            return (Image) new ImageConverter().ConvertFrom(data);
+            return (Image)new ImageConverter().ConvertFrom(data);
         }
 
         private void btnYeniFilm_Click(object sender, EventArgs e)
@@ -109,7 +111,7 @@ namespace OzIMDB
 
         private int YeniFilmEkle()
         {
-            var cmd = new SqlCommand("Insert into Filmler(FilmAd) Values(N'Yeni Film'); Select Scope_Identity();",con);
+            var cmd = new SqlCommand("Insert into Filmler(FilmAd) Values(N'Yeni Film'); Select Scope_Identity();", con);
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
 
@@ -121,9 +123,10 @@ namespace OzIMDB
             }
 
             guncellemeAktif = false;
-            Film film = (Film) lstFilmler.SelectedItem;
+            Film film = (Film)lstFilmler.SelectedItem;
             txtFilmId.Text = film.Id.ToString();
             txtFilmAd.Text = film.FilmAd;
+            pboFoto.Image = film.Foto;
 
             #region Puanı Goster
             if (film.Puan == null)
@@ -132,7 +135,7 @@ namespace OzIMDB
             }
             else
             {
-                //#region Yontem 1
+                #region Yontem 1
                 //RadioButton rb;
                 //foreach (Control control in gboPuan.Controls)
                 //{
@@ -144,13 +147,13 @@ namespace OzIMDB
                 //        break;
                 //    }
                 //} 
-                //#endregion
+                #endregion
 
                 #region Yontem 2
                 RadioButton[] rbDizi = { rbPuanYok, rbPuan1, rbPuan2, rbPuan3, rbPuan4, rbPuan5 };
                 rbDizi[film.Puan.Value].Checked = true;
                 #endregion
-            } 
+            }
             #endregion
 
             pboFoto.Image = film.Foto;
@@ -167,14 +170,115 @@ namespace OzIMDB
         {
             if (guncellemeAktif && lstFilmler.SelectedIndex > -1)
             {
-                Film film = (Film) lstFilmler.SelectedItem;
+                Film film = (Film)lstFilmler.SelectedItem;
                 film.FilmAd = txtFilmAd.Text;
-                // todo: puanı ve resmi güncelle
+                film.Puan = SeciliPuan();
+                film.Foto = pboFoto.Image;
 
-                var cmd = new SqlCommand("Update filmler set FilmAd = @p1 where Id = @p4",con);
+                var cmd = new SqlCommand("Update filmler set FilmAd = @p1, Puan = @p2 , Foto = @p3 where Id = @p4", con);
                 cmd.Parameters.AddWithValue("@p1", film.FilmAd);
+                cmd.Parameters.AddWithValue("@p2", (object)film.Puan ?? SqlBinary.Null);
+                cmd.Parameters.AddWithValue("@p3", (object)ConvertToByteArray(film.Foto) ?? SqlBinary.Null);
                 cmd.Parameters.AddWithValue("@p4", film.Id);
                 cmd.ExecuteNonQuery();
+                filmler.ResetBindings();
+            }
+        }
+
+
+        private int? SeciliPuan()
+        {
+            RadioButton rb = null;
+            foreach (Control control in gboPuan.Controls)
+            {
+                if (control is RadioButton)
+                {
+                    rb = (RadioButton)control;
+
+                    if (rb.Checked)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return rb.Tag == null ? null as int? : Convert.ToInt32(rb.Tag);
+
+        }
+
+        // RadioButton seçimi kalkan ve secilen dahil ikisi etkileniyor.
+        // bu kod ile seçimi kalkan etkilenmez çünkü (checked false)
+        private void rbPuanYok_CheckedChanged(object sender, EventArgs e)
+        {
+            if (((RadioButton)sender).Checked)
+            {
+                Guncelle();
+            }
+        }
+
+        private void pboFoto_Click(object sender, EventArgs e)
+        {
+
+            if (lstFilmler.SelectedIndex == -1)
+            {
+                return;
+            }
+            DialogResult dr = openFileDialog1.ShowDialog();
+
+            if (dr == DialogResult.OK)
+            {
+                pboFoto.Image = Image.FromFile(openFileDialog1.FileName);
+                Guncelle();
+            }
+        }
+        public byte[] ConvertToByteArray(Image image)
+        {
+            ImageConverter _imageConverter = new ImageConverter();
+            byte[] xByte = (byte[])_imageConverter.ConvertTo(image, typeof(byte[]));
+            return xByte;
+        }
+
+        private void lstFilmler_KeyDown(object sender, KeyEventArgs e)
+        {
+            int sid = lstFilmler.SelectedIndex;
+            if (e.KeyCode == Keys.Delete == lstFilmler.SelectedIndex > -1)
+            {
+                Film film = (Film) lstFilmler.SelectedItem;
+                filmler.Remove(film);
+                FilmSil(film.Id);
+
+                if (sid == lstFilmler.SelectedIndex)
+                {
+                    lstFilmler.SelectedIndex = -1;
+                    lstFilmler.SelectedIndex = sid;
+                }
+                else if (lstFilmler.SelectedIndex == -1)
+                {
+                    FormuTemizle();
+                }
+            }
+        }
+
+        private void FormuTemizle()
+        {
+            txtFilmAd.Clear();
+            txtFilmId.Clear();
+            rbPuanYok.Checked = true;
+            pboFoto.Image = null;
+        }
+
+        private void FilmSil(int Id)
+        {
+            var cmd = new  SqlCommand("Delete from filmler where Id = " +Id,con);
+            cmd.ExecuteNonQuery();
+        }
+
+        private void txtFilmAd_Leave(object sender, EventArgs e)
+        {
+            if (txtFilmAd.Text.Trim() == "")
+            {
+                
+                txtFilmAd.Focus();
             }
         }
     }

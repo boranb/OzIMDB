@@ -34,6 +34,7 @@
             this.txtFilmId = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.gboPuan = new System.Windows.Forms.GroupBox();
+            this.rbPuanYok = new System.Windows.Forms.RadioButton();
             this.rbPuan5 = new System.Windows.Forms.RadioButton();
             this.rbPuan4 = new System.Windows.Forms.RadioButton();
             this.rbPuan3 = new System.Windows.Forms.RadioButton();
@@ -44,7 +45,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.pboFoto = new System.Windows.Forms.PictureBox();
             this.lstFilmler = new System.Windows.Forms.ListBox();
-            this.rbPuanYok = new System.Windows.Forms.RadioButton();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.groupBox1.SuspendLayout();
             this.gboPuan.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pboFoto)).BeginInit();
@@ -110,6 +111,18 @@
             this.gboPuan.TabStop = false;
             this.gboPuan.Text = "Puan";
             // 
+            // rbPuanYok
+            // 
+            this.rbPuanYok.AutoSize = true;
+            this.rbPuanYok.Location = new System.Drawing.Point(6, 29);
+            this.rbPuanYok.Name = "rbPuanYok";
+            this.rbPuanYok.Size = new System.Drawing.Size(93, 17);
+            this.rbPuanYok.TabIndex = 5;
+            this.rbPuanYok.TabStop = true;
+            this.rbPuanYok.Text = "Puanlanmamış";
+            this.rbPuanYok.UseVisualStyleBackColor = true;
+            this.rbPuanYok.CheckedChanged += new System.EventHandler(this.rbPuanYok_CheckedChanged);
+            // 
             // rbPuan5
             // 
             this.rbPuan5.AutoSize = true;
@@ -121,6 +134,7 @@
             this.rbPuan5.Tag = "5";
             this.rbPuan5.Text = "5 - Çok İyi";
             this.rbPuan5.UseVisualStyleBackColor = true;
+            this.rbPuan5.CheckedChanged += new System.EventHandler(this.rbPuanYok_CheckedChanged);
             // 
             // rbPuan4
             // 
@@ -133,6 +147,7 @@
             this.rbPuan4.Tag = "4";
             this.rbPuan4.Text = "4 - İyi";
             this.rbPuan4.UseVisualStyleBackColor = true;
+            this.rbPuan4.CheckedChanged += new System.EventHandler(this.rbPuanYok_CheckedChanged);
             // 
             // rbPuan3
             // 
@@ -145,6 +160,7 @@
             this.rbPuan3.Tag = "3";
             this.rbPuan3.Text = "3 - Orta";
             this.rbPuan3.UseVisualStyleBackColor = true;
+            this.rbPuan3.CheckedChanged += new System.EventHandler(this.rbPuanYok_CheckedChanged);
             // 
             // rbPuan2
             // 
@@ -157,6 +173,7 @@
             this.rbPuan2.Tag = "2";
             this.rbPuan2.Text = "2 - Kötü";
             this.rbPuan2.UseVisualStyleBackColor = true;
+            this.rbPuan2.CheckedChanged += new System.EventHandler(this.rbPuanYok_CheckedChanged);
             // 
             // rbPuan1
             // 
@@ -169,6 +186,7 @@
             this.rbPuan1.Tag = "1";
             this.rbPuan1.Text = "1 - Çok Kötü";
             this.rbPuan1.UseVisualStyleBackColor = true;
+            this.rbPuan1.CheckedChanged += new System.EventHandler(this.rbPuanYok_CheckedChanged);
             // 
             // label3
             // 
@@ -189,6 +207,7 @@
             this.txtFilmAd.Size = new System.Drawing.Size(180, 20);
             this.txtFilmAd.TabIndex = 1;
             this.txtFilmAd.TextChanged += new System.EventHandler(this.txtFilmAd_TextChanged);
+            this.txtFilmAd.Leave += new System.EventHandler(this.txtFilmAd_Leave);
             // 
             // label1
             // 
@@ -202,12 +221,14 @@
             // pboFoto
             // 
             this.pboFoto.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.pboFoto.Cursor = System.Windows.Forms.Cursors.Hand;
             this.pboFoto.Location = new System.Drawing.Point(218, 90);
             this.pboFoto.Name = "pboFoto";
             this.pboFoto.Size = new System.Drawing.Size(150, 200);
             this.pboFoto.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pboFoto.TabIndex = 0;
             this.pboFoto.TabStop = false;
+            this.pboFoto.Click += new System.EventHandler(this.pboFoto_Click);
             // 
             // lstFilmler
             // 
@@ -219,18 +240,12 @@
             this.lstFilmler.TabIndex = 0;
             this.lstFilmler.ValueMember = "Id";
             this.lstFilmler.SelectedIndexChanged += new System.EventHandler(this.lstFilmler_SelectedIndexChanged);
+            this.lstFilmler.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lstFilmler_KeyDown);
             // 
-            // rbPuanYok
+            // openFileDialog1
             // 
-            this.rbPuanYok.AutoSize = true;
-            this.rbPuanYok.Location = new System.Drawing.Point(6, 29);
-            this.rbPuanYok.Name = "rbPuanYok";
-            this.rbPuanYok.Size = new System.Drawing.Size(93, 17);
-            this.rbPuanYok.TabIndex = 5;
-            this.rbPuanYok.TabStop = true;
-            this.rbPuanYok.Tag = "";
-            this.rbPuanYok.Text = "Puanlanmamış";
-            this.rbPuanYok.UseVisualStyleBackColor = true;
+            this.openFileDialog1.FileName = "openFileDialog1";
+            this.openFileDialog1.Filter = "Resim Dosyaları (*.BMP;*.JPG;*.PNG;*.GIF)|*.BMP;*.JPG;*.JPEG;*.PNG;*.GIF";
             // 
             // Form1
             // 
@@ -270,6 +285,7 @@
         private System.Windows.Forms.PictureBox pboFoto;
         private System.Windows.Forms.ListBox lstFilmler;
         private System.Windows.Forms.RadioButton rbPuanYok;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
     }
 }
 
